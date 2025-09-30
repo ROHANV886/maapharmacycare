@@ -1,7 +1,7 @@
 
 """
 Django settings for maapharmacy project.
-Simplified config without decouple.
+Deployment-ready config for PythonAnywhere.
 """
 
 import os
@@ -12,14 +12,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =======================
 # Security
 # =======================
-SECRET_KEY = "django-insecure-h_csf66f@a8v%z+ccoyoru@qv=6jf_#(l^8*q7zq2$qvr8(mzu"
-DEBUG = True
+SECRET_KEY = os.environ.get("SECRET_KEY", "dummy-key-for-dev")
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "prernasharma1.pythonanywhere.com",   # apna pythonanywhere subdomain
-    "shop.maapharmacycare.com",      # custom subdomain
+    "prernasharma1.pythonanywhere.com",
+    "shop.maapharmacycare.com",
+    "www.maapharmacycare.com",
 ]
 
 # =======================
@@ -47,6 +48,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "maapharmacy.urls"
@@ -70,7 +72,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "maapharmacy.wsgi.application"
 
 # =======================
-# Database
+# Database (SQLite by default)
 # =======================
 DATABASES = {
     "default": {
@@ -78,6 +80,16 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+# For PythonAnywhere MySQL, you can switch to:
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": "username$dbname",
+#         "USER": "username",
+#         "PASSWORD": os.environ.get("DB_PASS"),
+#         "HOST": "username.mysql.pythonanywhere-services.com",
+#     }
+# }
 
 # =======================
 # Password Validators
@@ -102,6 +114,7 @@ USE_TZ = True
 # =======================
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -113,6 +126,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5500",
+    "https://shop.maapharmacycare.com",
+    "https://www.maapharmacycare.com",
 ]
 
 # =======================
@@ -132,17 +147,24 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "Rohanv999058@gmail.com"
-EMAIL_HOST_PASSWORD = "vvff rdfr uixt jcrv"
+EMAIL_HOST_USER = os.environ.get("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASS")
 
 # =======================
 # Sessions
 # =======================
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 1800  # 30 minutes
-SESSION_SAVE_EVERY_REQUEST = True  
+SESSION_SAVE_EVERY_REQUEST = True
 
 # =======================
 # Default PK
 # =======================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+STORAGES = {
+    # ...
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
